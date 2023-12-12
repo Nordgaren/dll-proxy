@@ -1,4 +1,3 @@
-#![allow(non_snake_case)]
 // #[repr(C)]
 // pub struct PEB {
 //     pub InheritedAddressSpace: u8,
