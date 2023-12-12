@@ -4,6 +4,7 @@ use winreg::RegKey;
 
 #[link(name = "kernel32", kind = "raw-dylib")]
 extern "system" {
+    #[allow(non_snake_case)]
     pub fn LoadLibraryA(lpLibFileName: *const u8) -> usize;
 }
 

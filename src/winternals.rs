@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 // #[repr(C)]
 // pub struct PEB {
 //     pub InheritedAddressSpace: u8,
@@ -189,11 +190,13 @@
 // pub const IMAGE_DIRECTORY_ENTRY_SECURITY: u16 = 4;
 // pub const IMAGE_DIRECTORY_ENTRY_TLS: u16 = 9;
 #[link(name = "kernel32", kind = "raw-dylib")]
+#[allow(unused)]
 extern "system" {
     pub fn GetModuleHandleA(module_name: *const u8) -> usize;
     pub fn GetProcAddress(module_handle: usize, proc_name: *const u8) -> usize;
     pub fn LoadLibraryA(lpLibFileName: *const u8) -> usize;
     pub fn GetSystemDirectoryA(lpBuffer: *mut u8, uSize: u32) -> u32;
     pub fn GetWindowsDirectoryA(lpBuffer: *mut u8, uSize: u32) -> u32;
+    pub fn GetCurrentDirectoryA( uSize: u32, lpBuffer: *mut u8) -> u32;
 }
 
