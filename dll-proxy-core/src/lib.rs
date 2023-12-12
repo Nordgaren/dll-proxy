@@ -45,7 +45,7 @@ pub fn dll_proxy_core(_: TokenStream, input: TokenStream) -> TokenStream {
                     pub extern "system" fn #export_name() {
                         unsafe {
                             std::arch::asm!(
-                            "jmpq  *{}(%rip)",
+                            "jmp [{}]",
                             sym #export_ptr,
                             options(noreturn, att_syntax, nostack),
                             );
