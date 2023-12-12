@@ -1,0 +1,13 @@
+[package]
+name = "dll-proxy"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[workspace]
+members = ["dll-proxy-derive", "dll-proxy-core"]
+
+[dependencies]
+dll-proxy-derive = { version = "0.1.0", path = "dll-proxy-derive" }
+winreg = "0.52.0"
