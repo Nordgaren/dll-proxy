@@ -41,14 +41,13 @@ pub fn dll_proxy_core(_: TokenStream, input: TokenStream) -> TokenStream {
         let q = quote! {
                     pub static mut #export_ptr: *const std::ffi::c_void = 0 as *const std::ffi::c_void;
 
-                    #[naked]
                     #[no_mangle]
                     pub extern "system" fn #export_name() {
                         unsafe {
-                            asm!(
+                            std::arch::asm!(
                             "jmpq  *{}(%rip)",
                             sym #export_ptr,
-                            options(noreturn, att_syntax),
+                            options(noreturn, att_syntax, nostack),
                             );
                         }
                     }
