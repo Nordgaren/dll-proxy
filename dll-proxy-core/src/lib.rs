@@ -2,9 +2,8 @@
 
 mod tests;
 mod utils;
-mod winternals;
 
-use crate::utils::{dll_is_known_dll, find_dll_on_disk};
+use crate::utils::{dll_is_known_dll, LoadLibraryA};
 use pe_util::PE;
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
@@ -13,22 +12,27 @@ use syn::{parse2, LitStr};
 
 pub fn dll_proxy_core(_: TokenStream, input: TokenStream) -> TokenStream {
     // proc_marco2 version of "parse_macro_input!(input as LitStr)"
-    let user_input = match parse2::<LitStr>(input) {
+    let mut user_input = match parse2::<LitStr>(input) {
         Ok(syntax_tree) => syntax_tree.value(),
         Err(error) => return error.to_compile_error(),
     };
 
-    if dll_is_known_dll(user_input.as_str()) {
-        panic!("Cannot proxy dll in KnownDlls list {}", user_input)
+    if dll_is_known_dll(&user_input) {
+        panic!("dll is known dll, and cannot be proxied. Please use a different dll.")
     }
 
-    let pe_file = match find_dll_on_disk(user_input.as_str()) {
-        Some(v) => v,
-        None => panic!("Could not find {}", user_input),
-    };
+    user_input.push('\0');
 
-    let pe = PE::from_slice(pe_file.as_slice())
-        .expect(&format!("Could not parse PE headers for {}", user_input));
+    let pe_addr = unsafe { LoadLibraryA(user_input.as_ptr()) };
+
+    if pe_addr == 0 {
+        panic!("Could not find PE file");
+    }
+
+    let pe = unsafe {
+        PE::from_address(pe_addr)
+            .expect(&format!("Could not parse PE headers for {}", user_input))
+    };
 
     let exports = unsafe { pe.get_exports() }.expect("Could not get exports");
 
