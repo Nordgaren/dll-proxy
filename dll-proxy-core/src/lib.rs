@@ -72,7 +72,7 @@ pub fn dll_proxy_core(_: TokenStream, input: TokenStream) -> TokenStream {
     for export in &exports {
         let export_ptr = format_ident!("p{}", export);
         let q = quote! {
-            #export_ptr = dll_proxy::winternals::GetProcAddressInternal(#dll_ident, #export);
+            #export_ptr = dll_proxy::winternals::GetProcAddress(#dll_ident, #export);
         };
         init_funcs.extend(q);
     }
@@ -91,11 +91,14 @@ pub fn dll_proxy_core(_: TokenStream, input: TokenStream) -> TokenStream {
     let func = quote! {
         pub unsafe fn #func_name() {
                 let path = match dll_proxy::utils::get_dll_path_from_search_paths(#dll_name) {
-                    Some(p) => p,
+                    Some(p) => {
+                        p.push('\0');
+                        p
+                    },
                     None => return false,
                 };
 
-                let #dll_ident = dll_proxy::winternals::LoadLibraryA(&path);
+                let #dll_ident = dll_proxy::winternals::LoadLibraryA(path.as_ptr());
                 if #dll_ident == 0 {
                     return false;
                 }
