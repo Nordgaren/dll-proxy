@@ -1,4 +1,3 @@
-
 include!("../../src/utils.rs");
 
 pub fn find_dll_on_disk(dll_name: &str) -> Option<Vec<u8>> {

@@ -5,18 +5,15 @@ mod utils;
 mod winternals;
 
 use crate::utils::{dll_is_known_dll, find_dll_on_disk};
-use paste::paste;
 use pe_util::PE;
 use proc_macro2::TokenStream;
-use quote::{format_ident, quote, ToTokens, TokenStreamExt};
-use std::ffi::OsStr;
+use quote::{format_ident, quote};
 use std::path::PathBuf;
-use syn::parse::Parser;
-use syn::{parse2, ItemFn, LitStr};
+use syn::{parse2, LitStr};
 
-pub fn dll_proxy_core(args: TokenStream, input: TokenStream) -> TokenStream {
+pub fn dll_proxy_core(_: TokenStream, input: TokenStream) -> TokenStream {
     // proc_marco2 version of "parse_macro_input!(input as LitStr)"
-    let mut user_input = match parse2::<LitStr>(input) {
+    let user_input = match parse2::<LitStr>(input) {
         Ok(syntax_tree) => syntax_tree.value(),
         Err(error) => return error.to_compile_error(),
     };
@@ -80,8 +77,8 @@ pub fn dll_proxy_core(args: TokenStream, input: TokenStream) -> TokenStream {
         };
         init_funcs.extend(q);
     }
-    // also why
     let dll_name = if path.is_absolute() {
+        // also why
         path.file_name()
             .expect(&format!("No file name for user input {:?}", path))
             .to_str()

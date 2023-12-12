@@ -1,5 +1,5 @@
 use std::arch::global_asm;
-use std::{fs, mem};
+use std::fs;
 use std::ptr::addr_of;
 use crate::winternals::*;
 use winreg::enums::HKEY_LOCAL_MACHINE;

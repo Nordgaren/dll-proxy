@@ -1,5 +1,5 @@
-use crate::utils::{GetModuleHandleInternal, GetProcAddressInternal};
 use crate::utils::ExportType::Name;
+use crate::utils::{GetModuleHandleInternal, GetProcAddressInternal};
 
 #[repr(C)]
 pub struct PEB {
