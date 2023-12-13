@@ -60,28 +60,20 @@ pub fn dll_proxy_core(input: TokenStream) -> TokenStream {
     }
 
     let path = PathBuf::from(user_input);
-    // why
-    let dll_name_no_ext = path
-        .file_stem()
-        .expect(&format!(
-            "No file name without extension for user input {:?}",
-            path
-        ))
-        .to_str()
-        .expect("Could not format dll name as str");
-    let dll_ident = format_ident!("{dll_name_no_ext}");
 
     // Get the values we have our thunks jump to.
     let mut init_funcs = TokenStream::new();
     for export in &exports {
         let export_ptr = format_ident!("p{}", export);
         let q = quote! {
-            #export_ptr = dll_proxy::winternals::GetProcAddress(#dll_ident, #export.as_ptr());
+            #export_ptr = dll_proxy::winternals::GetProcAddress(dll_addr, #export.as_ptr());
         };
         init_funcs.extend(q);
     }
+    // If the path is absolute, we want to remove the file name.
+    // I am just going to assume if the user gives an absolute path, then it will be in the targets search paths.
     let dll_name = if path.is_absolute() {
-        // also why
+        // why
         path.file_name()
             .expect(&format!("No file name for user input {:?}", path))
             .to_str()
@@ -90,10 +82,8 @@ pub fn dll_proxy_core(input: TokenStream) -> TokenStream {
         path.to_str().expect("Could not convert filename to str")
     };
 
-    let func_name = format_ident!("init_{dll_name_no_ext}");
-
     let func = quote! {
-        pub unsafe fn #func_name() -> bool {
+        pub unsafe fn init_proxy() -> bool {
                 let path = match dll_proxy::utils::get_dll_path_from_search_paths(#dll_name) {
                     Some(mut p) => {
                         p.push('\0');
@@ -102,8 +92,8 @@ pub fn dll_proxy_core(input: TokenStream) -> TokenStream {
                     None => return false,
                 };
 
-                let #dll_ident = dll_proxy::winternals::LoadLibraryA(path.as_ptr());
-                if #dll_ident == 0 {
+                let dll_addr = dll_proxy::winternals::LoadLibraryA(path.as_ptr());
+                if dll_addr == 0 {
                     return false;
                 }
 

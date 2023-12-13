@@ -16,14 +16,14 @@ pub fn dll_is_known_dll(dll_name: &str) -> bool {
     let lowercase = dll_name.to_lowercase();
     let path = PathBuf::from(lowercase);
     // I hate this
-    let dll_name_to_lower = path.file_name()
+    let lowercase_dll_name = path.file_name()
         .expect("Could not get file name from supplied dll")
         .to_str()
         .expect("Utf8Error when trying to parse dll name to string");
     for dll in known_dlls.enum_values() {
         match dll {
             Ok(name) => {
-                if name.1.to_string().to_lowercase() == dll_name_to_lower {
+                if name.1.to_string().to_lowercase() == lowercase_dll_name {
                     return true;
                 }
             }
