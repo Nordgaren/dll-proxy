@@ -10,7 +10,7 @@ use quote::{format_ident, quote};
 use std::path::PathBuf;
 use syn::{parse2, LitStr};
 
-pub fn dll_proxy_core(_: TokenStream, input: TokenStream) -> TokenStream {
+pub fn dll_proxy_core(input: TokenStream) -> TokenStream {
     // proc_marco2 version of "parse_macro_input!(input as LitStr)"
     let mut user_input = match parse2::<LitStr>(input) {
         Ok(syntax_tree) => syntax_tree.value(),
@@ -43,13 +43,13 @@ pub fn dll_proxy_core(_: TokenStream, input: TokenStream) -> TokenStream {
         let export_name = format_ident!("{}", export);
 
         let q = quote! {
-                    pub static mut #export_ptr: *const std::ffi::c_void = 0 as *const std::ffi::c_void;
+                    pub static mut #export_ptr: usize = 0;
 
                     #[no_mangle]
                     pub extern "system" fn #export_name() {
                         unsafe {
                             std::arch::asm!(
-                            "jmp [{}]",
+                            "jmpq  *{}(%rip)",
                             sym #export_ptr,
                             options(noreturn, att_syntax, nostack),
                             );
@@ -76,7 +76,7 @@ pub fn dll_proxy_core(_: TokenStream, input: TokenStream) -> TokenStream {
     for export in &exports {
         let export_ptr = format_ident!("p{}", export);
         let q = quote! {
-            #export_ptr = dll_proxy::winternals::GetProcAddress(#dll_ident, #export);
+            #export_ptr = dll_proxy::winternals::GetProcAddress(#dll_ident, #export.as_ptr());
         };
         init_funcs.extend(q);
     }
@@ -93,9 +93,9 @@ pub fn dll_proxy_core(_: TokenStream, input: TokenStream) -> TokenStream {
     let func_name = format_ident!("init_{dll_name_no_ext}");
 
     let func = quote! {
-        pub unsafe fn #func_name() {
+        pub unsafe fn #func_name() -> bool {
                 let path = match dll_proxy::utils::get_dll_path_from_search_paths(#dll_name) {
-                    Some(p) => {
+                    Some(mut p) => {
                         p.push('\0');
                         p
                     },
