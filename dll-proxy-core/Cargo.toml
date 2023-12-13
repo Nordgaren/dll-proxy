@@ -15,4 +15,3 @@ proc-macro2 = "1.0.24"
 proc-macro-error = "1.0"
 winreg = "0.52.0"
 pe-util = { git = "https://github.com/Nordgaren/pe-util.git" }
-paste = { version = "1.0.14", features = [] }
