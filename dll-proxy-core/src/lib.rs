@@ -10,9 +10,9 @@ use quote::{format_ident, quote};
 use std::path::PathBuf;
 use syn::{parse2, LitStr};
 
-pub fn dll_proxy_core(input: TokenStream) -> TokenStream {
+pub fn proxy_dll_core(input: TokenStream) -> TokenStream {
     // proc_marco2 version of "parse_macro_input!(input as LitStr)"
-    let mut user_input = match parse2::<LitStr>(input) {
+    let user_input = match parse2::<LitStr>(input) {
         Ok(syntax_tree) => syntax_tree.value(),
         Err(error) => return error.to_compile_error(),
     };
@@ -21,9 +21,10 @@ pub fn dll_proxy_core(input: TokenStream) -> TokenStream {
         panic!("dll is known dll, and cannot be proxied. Please use a different dll.")
     }
 
-    user_input.push('\0');
+    let mut path = user_input.clone();
+    path.push('\0');
 
-    let pe_addr = unsafe { LoadLibraryA(user_input.as_ptr()) };
+    let pe_addr = unsafe { LoadLibraryA(path.as_ptr()) };
 
     if pe_addr == 0 {
         panic!("Could not find PE file");
@@ -65,8 +66,9 @@ pub fn dll_proxy_core(input: TokenStream) -> TokenStream {
     let mut init_funcs = TokenStream::new();
     for export in &exports {
         let export_ptr = format_ident!("p{}", export);
+        let export_terminated = format!("{}\0", export);
         let q = quote! {
-            #export_ptr = dll_proxy::winternals::GetProcAddress(dll_addr, #export.as_ptr());
+            #export_ptr = dll_proxy::winternals::GetProcAddress(dll_addr, #export_terminated.as_ptr());
         };
         init_funcs.extend(q);
     }
@@ -82,24 +84,30 @@ pub fn dll_proxy_core(input: TokenStream) -> TokenStream {
         path.to_str().expect("Could not convert filename to str")
     };
 
+    let dll_name_lower = dll_name.to_lowercase();
+
     let func = quote! {
-        pub unsafe fn init_proxy() -> bool {
+        pub unsafe fn init_proxy(hModule: isize) -> Result<String, &'static str> {
+                let name = dll_proxy::utils::get_path(hModule);
+                if !name.to_lowercase().ends_with(#dll_name_lower) {
+                    return Ok(name);
+                }
                 let path = match dll_proxy::utils::get_dll_path_from_search_paths(#dll_name) {
                     Some(mut p) => {
                         p.push('\0');
                         p
                     },
-                    None => return false,
+                    None => return Err("Could not find dll from search paths."),
                 };
 
                 let dll_addr = dll_proxy::winternals::LoadLibraryA(path.as_ptr());
                 if dll_addr == 0 {
-                    return false;
+                    return Err("LoadLibraryA failed");
                 }
 
                 #init_funcs
 
-                true
+                Ok(name)
         }
     };
 

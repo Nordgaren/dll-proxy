@@ -9,5 +9,6 @@ extern "system" {
     pub fn GetSystemDirectoryA(lpBuffer: *mut u8, uSize: u32) -> u32;
     pub fn GetWindowsDirectoryA(lpBuffer: *mut u8, uSize: u32) -> u32;
     pub fn GetCurrentDirectoryA( uSize: u32, lpBuffer: *mut u8) -> u32;
+    pub fn GetModuleFileNameA(hModule: usize, lpBuffer: *mut u8, uSize: u32) -> u32;
 }
 

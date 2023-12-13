@@ -77,6 +77,16 @@ fn get_current_directory(buffer: &mut [u8]) -> usize {
         GetCurrentDirectoryA( (buffer.len() - 1) as u32, buffer.as_mut_ptr()) as usize
     }
 }
+pub unsafe fn get_path(module_address: isize) -> String {
+    let mut buffer = [0u8; MAX_PATH + 1];
+    let name_size = GetModuleFileNameA(
+        module_address as usize,
+        buffer.as_mut_ptr(),
+        buffer.len() as u32
+    ) as usize;
+    let name = &buffer[..name_size];
+    std::str::from_utf8(name).unwrap_or_default().to_string()
+}
 
 #[cfg(test)]
 mod tests {
