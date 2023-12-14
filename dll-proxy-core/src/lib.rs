@@ -83,7 +83,9 @@ pub fn proxy_dll_core(input: TokenStream) -> TokenStream {
         path.to_str().expect("Could not convert filename to str")
     };
 
-    // Just in case the user passes in a relative or absolute path.
+    // Just in case the user passes in a relative path.
+    // I should maybe also make relative paths assume the dll is in the search paths
+    // but it could have legitimate use case? IDK
     let dll_name_lower = path
         .file_name()
         .expect(&format!("No file name for user input {:?}", path))
