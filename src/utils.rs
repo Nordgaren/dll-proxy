@@ -69,10 +69,10 @@ fn get_windows_directory(buffer: &mut [u8]) -> usize {
         GetWindowsDirectoryA(buffer.as_mut_ptr(), (buffer.len() - 1) as u32) as usize
     }
 }
-pub unsafe fn get_path(module_address: isize) -> String {
+pub unsafe fn get_path(module_address: usize) -> String {
     let mut buffer = [0u8; MAX_PATH + 1];
     let name_size = GetModuleFileNameA(
-        module_address as usize,
+        module_address,
         buffer.as_mut_ptr(),
         buffer.len() as u32
     ) as usize;

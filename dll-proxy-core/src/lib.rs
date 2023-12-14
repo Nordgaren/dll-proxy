@@ -94,7 +94,7 @@ pub fn proxy_dll_core(input: TokenStream) -> TokenStream {
         .to_lowercase();
 
     let func = quote! {
-        pub unsafe fn init_proxy(hModule: isize) -> Result<String, &'static str> {
+        pub unsafe fn init_proxy(hModule: usize) -> Result<String, &'static str> {
                 let name = dll_proxy::utils::get_path(hModule);
                 if !name.to_lowercase().ends_with(#dll_name_lower) {
                     return Ok(name);
