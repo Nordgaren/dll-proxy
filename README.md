@@ -4,10 +4,10 @@
 proxy_dll!("dinput8.dll")
 ```
 
-This will generate an export for every function that is exported in the dll you passed in.
+This will generate an export for every function that is exported in the dll you passed in. It will also generate a public function you can call (if you need to call the proxies functions), and a private pointer as a usize that you can make public yourself with a get method in the file you run the macro in.  
 You can also pass in an absolute or relative path. Relative paths will stay in tact, while absolute paths are expected to be found in the target machines System Folder, Windows Folder or PATH folder.
 
-You will need to call the init function, and you will also need to pass in the base address of your dll when it's loaded, to the init function. I suggest a DllMain like this
+You will need to call the init function, and you will also need to pass in the base address of your dll when it's loaded, to the init function. I suggest a DllMain like this:
 ```rust
 #[no_mangle]
 #[allow(unused)]
