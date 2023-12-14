@@ -13,7 +13,7 @@ pub fn get_dll_path_from_search_paths(dll_name: &str) -> Option<String> {
         return Some(full_path);
     }
 
-    clear_buffer(&mut buffer);
+    buffer.fill(0);
     let len = get_windows_directory(&mut buffer);
     let path = std::str::from_utf8(&buffer[..len]).expect("Utf8Error std::str::from_utf8 from get_windows_directory");
     let full_path = format!("{}\\{}", path, dll_name);
@@ -23,7 +23,7 @@ pub fn get_dll_path_from_search_paths(dll_name: &str) -> Option<String> {
 
     // // I don't know if I want to do this. This will get the working directory. I THINK that most
     // // exes execute from C:\Windows, but I am not sure. I guess I can try and mess with this, later.
-    // clear_buffer(&mut buffer);
+    // buffer.fill(0);
     // let len = get_current_directory(&mut buffer);
     // let path = std::str::from_utf8(&buffer[..len]).expect("Utf8Error std::str::from_utf8 from get_windows_directory");
     // println!("get_current_directory: {}", path);
