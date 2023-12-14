@@ -36,7 +36,7 @@ pub fn proxy_dll_core(input: TokenStream) -> TokenStream {
 
     let exports = unsafe { pe.get_exports() }.expect("Could not get exports");
 
-    let mut export_stream = TokenStream::new();
+    let mut token_stream = TokenStream::new();
 
     for export in &exports {
         let export_ptr = format_ident!("p{}", export);
@@ -46,7 +46,7 @@ pub fn proxy_dll_core(input: TokenStream) -> TokenStream {
                     static mut #export_ptr: usize = 0;
 
                     #[no_mangle]
-                    extern "system" fn #export_name() {
+                    pub extern "system" fn #export_name() {
                         unsafe {
                             std::arch::asm!(
                             "jmpq  *{}(%rip)",
@@ -56,7 +56,7 @@ pub fn proxy_dll_core(input: TokenStream) -> TokenStream {
                         }
                     }
         };
-        export_stream.extend(q);
+        token_stream.extend(q);
     }
 
     let path = PathBuf::from(user_input);
@@ -93,8 +93,8 @@ pub fn proxy_dll_core(input: TokenStream) -> TokenStream {
         .expect("Could not convert filename to str")
         .to_lowercase();
 
-    let token_stream = quote! {
-        pub unsafe fn init_proxy(hModule: isize) -> Result<String, String> {
+    let func = quote! {
+        pub unsafe fn init_proxy(hModule: isize) -> Result<String, &'static str> {
                 let name = dll_proxy::utils::get_path(hModule);
                 if !name.to_lowercase().ends_with(#dll_name_lower) {
                     return Ok(name);
@@ -104,21 +104,21 @@ pub fn proxy_dll_core(input: TokenStream) -> TokenStream {
                         p.push('\0');
                         p
                     },
-                    None => return Err(format!("Could not find dll from search paths. DLL Name: {}", #dll_name)),
+                    None => return Err("Could not find dll from search paths."),
                 };
 
                 let dll_addr = dll_proxy::winternals::LoadLibraryA(path.as_ptr());
                 if dll_addr == 0 {
-                    return Err(format!("LoadLibraryA failed GetLastError: {:X}", dll_proxy::winternals::GetLastError()));
+                    return Err("LoadLibraryA failed");
                 }
-
-                #export_stream
 
                 #init_funcs
 
                 Ok(name)
         }
     };
+
+    token_stream.extend(func);
 
     token_stream
 }

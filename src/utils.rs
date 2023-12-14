@@ -46,13 +46,6 @@ pub fn get_dll_path_from_search_paths(dll_name: &str) -> Option<String> {
 
     None
 }
-
-fn clear_buffer(buffer: &mut [u8]) {
-    for b in buffer.iter_mut() {
-        *b = 0;
-    }
-}
-
 fn is_file(path: &str) -> bool {
     match fs::metadata(path) {
         Ok(f) => f.is_file(),
