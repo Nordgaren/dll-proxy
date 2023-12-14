@@ -59,7 +59,12 @@ fn is_file(path: &str) -> bool {
         Err(_) => false,
     }
 }
-
+#[allow(unused)]
+fn get_current_directory(buffer: &mut [u8]) -> usize {
+    unsafe {
+        GetCurrentDirectoryA( (buffer.len() - 1) as u32, buffer.as_mut_ptr()) as usize
+    }
+}
 fn get_system_directory(buffer: &mut [u8]) -> usize {
     unsafe {
         GetSystemDirectoryA(buffer.as_mut_ptr(), (buffer.len() - 1) as u32) as usize
@@ -69,12 +74,6 @@ fn get_system_directory(buffer: &mut [u8]) -> usize {
 fn get_windows_directory(buffer: &mut [u8]) -> usize {
     unsafe {
         GetWindowsDirectoryA(buffer.as_mut_ptr(), (buffer.len() - 1) as u32) as usize
-    }
-}
-
-fn get_current_directory(buffer: &mut [u8]) -> usize {
-    unsafe {
-        GetCurrentDirectoryA( (buffer.len() - 1) as u32, buffer.as_mut_ptr()) as usize
     }
 }
 pub unsafe fn get_path(module_address: isize) -> String {
