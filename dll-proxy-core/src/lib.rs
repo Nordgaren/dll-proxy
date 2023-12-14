@@ -31,8 +31,7 @@ pub fn proxy_dll_core(input: TokenStream) -> TokenStream {
     }
 
     let pe = unsafe {
-        PE::from_address(pe_addr)
-            .expect(&format!("Could not parse PE headers for {}", user_input))
+        PE::from_address(pe_addr).expect(&format!("Could not parse PE headers for {}", user_input))
     };
 
     let exports = unsafe { pe.get_exports() }.expect("Could not get exports");
@@ -84,7 +83,13 @@ pub fn proxy_dll_core(input: TokenStream) -> TokenStream {
         path.to_str().expect("Could not convert filename to str")
     };
 
-    let dll_name_lower = dll_name.to_lowercase();
+    // Just in case the user passes in a relative or absolute path.
+    let dll_name_lower = path
+        .file_name()
+        .expect(&format!("No file name for user input {:?}", path))
+        .to_str()
+        .expect("Could not convert filename to str")
+        .to_lowercase();
 
     let func = quote! {
         pub unsafe fn init_proxy(hModule: isize) -> Result<String, &'static str> {
