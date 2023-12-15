@@ -109,7 +109,7 @@ pub fn proxy_dll_core(input: TokenStream) -> TokenStream {
 
                 let dll_addr = dll_proxy::winternals::LoadLibraryA(path.as_ptr());
                 if dll_addr == 0 {
-                    return Err("LoadLibraryA failed, last error: 0x{:X}", dll_proxy::winternals::GetLastError());
+                    return Err(format!("LoadLibraryA failed, last error: 0x{:X}", dll_proxy::winternals::GetLastError()));
                 }
 
                 #init_funcs
