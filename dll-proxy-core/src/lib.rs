@@ -94,7 +94,7 @@ pub fn proxy_dll_core(input: TokenStream) -> TokenStream {
         .to_lowercase();
 
     let func = quote! {
-        pub unsafe fn init_proxy(hModule: usize) -> Result<String, &'static str> {
+        pub unsafe fn init_proxy(hModule: usize) -> Result<String, String> {
                 let name = dll_proxy::utils::get_path(hModule);
                 if !name.to_lowercase().ends_with(#dll_name_lower) {
                     return Ok(name);
@@ -104,12 +104,12 @@ pub fn proxy_dll_core(input: TokenStream) -> TokenStream {
                         p.push('\0');
                         p
                     },
-                    None => return Err("Could not find dll from search paths."),
+                    None => return Err(format!("Could not find dll from search paths. {}", #dll_name)),
                 };
 
                 let dll_addr = dll_proxy::winternals::LoadLibraryA(path.as_ptr());
                 if dll_addr == 0 {
-                    return Err("LoadLibraryA failed");
+                    return Err("LoadLibraryA failed, last error: 0x{:X}", dll_proxy::winternals::GetLastError());
                 }
 
                 #init_funcs
