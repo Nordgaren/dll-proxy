@@ -62,14 +62,14 @@ pub fn proxy_dll_core(input: TokenStream) -> TokenStream {
     let path = PathBuf::from(user_input);
 
     // Get the values we have our thunks jump to.
-    let mut init_funcs = TokenStream::new();
+    let mut init_statics = TokenStream::new();
     for export in &exports {
         let export_ptr = format_ident!("p{}", export);
         let export_terminated = format!("{}\0", export);
         let q = quote! {
             #export_ptr = dll_proxy::winternals::GetProcAddress(dll_addr, #export_terminated.as_ptr());
         };
-        init_funcs.extend(q);
+        init_statics.extend(q);
     }
     // If the path is absolute, we want to remove the file name.
     // I am just going to assume if the user gives an absolute path, then it will be in the targets search paths.
@@ -93,7 +93,7 @@ pub fn proxy_dll_core(input: TokenStream) -> TokenStream {
         .expect("Could not convert filename to str")
         .to_lowercase();
 
-    let func = quote! {
+    let init_func = quote! {
         pub unsafe fn init_proxy(hModule: usize) -> Result<String, String> {
                 let name = dll_proxy::utils::get_path(hModule);
                 if !name.to_lowercase().ends_with(#dll_name_lower) {
@@ -112,13 +112,13 @@ pub fn proxy_dll_core(input: TokenStream) -> TokenStream {
                     return Err(format!("LoadLibraryA failed, last error: 0x{:X}", dll_proxy::winternals::GetLastError()));
                 }
 
-                #init_funcs
+                #init_statics
 
                 Ok(name)
         }
     };
 
-    token_stream.extend(func);
+    token_stream.extend(init_func);
 
     token_stream
 }
