@@ -46,10 +46,22 @@ pub fn proxy_dll_core(input: TokenStream) -> TokenStream {
                     static mut #export_ptr: usize = 0;
 
                     #[no_mangle]
+                    #[cfg(target_arch = "x86")]
                     pub extern "system" fn #export_name() {
                         unsafe {
                             std::arch::asm!(
-                            "jmpq  *{}(%rip)",
+                            "jmp  *{}",
+                            sym #export_ptr,
+                            options(noreturn, att_syntax, nostack),
+                            );
+                        }
+                    }
+                    #[no_mangle]
+                    #[cfg(target_arch = "x86_64")]
+                    pub extern "system" fn #export_name() {
+                        unsafe {
+                            std::arch::asm!(
+                            "jmp  *{}(%rip)",
                             sym #export_ptr,
                             options(noreturn, att_syntax, nostack),
                             );
